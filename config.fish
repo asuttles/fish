@@ -2,16 +2,21 @@
 set -x PATH /mingw64/bin $PATH
 
 # Environment
-set -x EDITOR vim
+set -x EDITOR emacs
 set -x VISUAL emacs
 set -x PAGER less
-set -x CCL_DEFAULT_DIRECTORY ~/install/ccl
-set -x OPENMCL_KERNEL wx86cl64
 
-# Common Lisp Package Management
-set -Ux XDG_CACHE_HOME $HOME/.cache
-set -Ux ASDF_OUTPUT_TRANSLATIONS "/:/home/asuttles/.cache/common-lisp/"
-set -Ux QUICKLISP_HOME $HOME/quicklisp
+# Common Lisp Configuration
+if test (hostname) = "GRLWL0522060039"
+   set -x CCL_DEFAULT_DIRECTORY ~/install/ccl
+   set -x OPENMCL_KERNEL wx86cl64
+
+   set -Ux XDG_CACHE_HOME $HOME/.cache
+   set -Ux ASDF_OUTPUT_TRANSLATIONS "/:/home/asuttles/.cache/common-lisp/"
+   set -Ux QUICKLISP_HOME $HOME/quicklisp
+
+   alias ccl "exec $CCL_DEFAULT_DIRECTORY/$OPENMCL_KERNEL"
+end
 
 # Startup Message
 function fish_greeting
@@ -47,7 +52,7 @@ function fish_prompt
     if test -d .git
        set stage_files (git diff --name-only | wc -l)
        if test $stage_files -gt 0
-       	  echo -n -s $color_git "! " $color_reset
+          echo -n -s $color_git "! " $color_reset
        else
           echo -n -s $color_git "✓ " $color_reset
        end
@@ -67,5 +72,13 @@ end
 
 # Aliases
 alias ll='ls -lh'
-alias gs='git status'
-alias ccl "exec $CCL_DEFAULT_DIRECTORY/$OPENMCL_KERNEL"
+
+# Start ssh-agent, if not running
+if test (hostname) = "phantom"
+   if not pgrep -u (whoami) ssh-agent > /dev/null
+      eval (ssh-agent -c)
+      ssh-add ~/.ssh/id_ed25519 2>/dev/null
+   end
+end
+   
+
